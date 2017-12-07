@@ -33,6 +33,12 @@ type Bus interface {
 	BusPublisher
 }
 
+var b *EventBus
+
+func init() {
+	b = New()
+}
+
 // EventBus - box for handlers and callbacks.
 type EventBus struct {
 	handlers map[string][]*eventHandler
@@ -49,13 +55,12 @@ type eventHandler struct {
 }
 
 // New returns new EventBus with empty handlers.
-func New() Bus {
-	b := &EventBus{
+func New() *EventBus {
+	return &EventBus{
 		make(map[string][]*eventHandler),
 		sync.Mutex{},
 		sync.WaitGroup{},
 	}
-	return Bus(b)
 }
 
 // doSubscribe handles the subscription logic and is utilized by the public Subscribe functions
@@ -69,12 +74,22 @@ func (bus *EventBus) doSubscribe(topic string, fn interface{}, handler *eventHan
 	return nil
 }
 
+// Subscribe runs Subscribe on package-level bus singleton
+func Subscribe(topic string, fn interface{}) error {
+	return b.Subscribe(topic, fn)
+}
+
 // Subscribe subscribes to a topic.
 // Returns error if `fn` is not a function.
 func (bus *EventBus) Subscribe(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
 		reflect.ValueOf(fn), false, false, false, sync.Mutex{},
 	})
+}
+
+// SubscribeAsync runs SubscribeAsync on package-level bus singleton
+func SubscribeAsync(topic string, fn interface{}, transactional bool) error {
+	return b.SubscribeAsync(topic, fn, transactional)
 }
 
 // SubscribeAsync subscribes to a topic with an asynchronous callback
@@ -87,12 +102,22 @@ func (bus *EventBus) SubscribeAsync(topic string, fn interface{}, transactional 
 	})
 }
 
+// SubscribeOnce runs SubscribeOnce on package-level bus singleton
+func SubscribeOnce(topic string, fn interface{}) error {
+	return b.SubscribeOnce(topic, fn)
+}
+
 // SubscribeOnce subscribes to a topic once. Handler will be removed after executing.
 // Returns error if `fn` is not a function.
 func (bus *EventBus) SubscribeOnce(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
 		reflect.ValueOf(fn), true, false, false, sync.Mutex{},
 	})
+}
+
+// SubscribeOnceAsync runs SubscribeOnceAsync on package-level bus singleton
+func SubscribeOnceAsync(topic string, fn interface{}) error {
+	return b.SubscribeOnceAsync(topic, fn)
 }
 
 // SubscribeOnceAsync subscribes to a topic once with an asynchronous callback
@@ -102,6 +127,11 @@ func (bus *EventBus) SubscribeOnceAsync(topic string, fn interface{}) error {
 	return bus.doSubscribe(topic, fn, &eventHandler{
 		reflect.ValueOf(fn), true, true, false, sync.Mutex{},
 	})
+}
+
+// HasCallback runs HasCallback on package-level bus singleton
+func HasCallback(topic string) bool {
+	return b.HasCallback(topic)
 }
 
 // HasCallback returns true if exists any callback subscribed to the topic.
@@ -115,6 +145,11 @@ func (bus *EventBus) HasCallback(topic string) bool {
 	return false
 }
 
+// Unsubscribe runs Unsubscribe on package-level bus singleton
+func Unsubscribe(topic string, handler interface{}) error {
+	return b.Unsubscribe(topic, handler)
+}
+
 // Unsubscribe removes callback defined for a topic.
 // Returns error if there are no callbacks subscribed to the topic.
 func (bus *EventBus) Unsubscribe(topic string, handler interface{}) error {
@@ -125,6 +160,11 @@ func (bus *EventBus) Unsubscribe(topic string, handler interface{}) error {
 		return nil
 	}
 	return fmt.Errorf("topic %s doesn't exist", topic)
+}
+
+// Publish runs Publish on package-level bus singleton
+func Publish(topic string, args ...interface{}) {
+	b.Publish(topic, args)
 }
 
 // Publish executes callback defined for a topic. Any additional argument will be transferred to the callback.
@@ -191,6 +231,11 @@ func (bus *EventBus) setUpPublish(topic string, args ...interface{}) []reflect.V
 		passedArguments = append(passedArguments, reflect.ValueOf(arg))
 	}
 	return passedArguments
+}
+
+// WaitAsync runs WaitAsync on package-level bus singleton
+func WaitAsync() {
+	b.WaitAsync()
 }
 
 // WaitAsync waits for all async callbacks to complete

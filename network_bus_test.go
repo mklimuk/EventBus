@@ -28,7 +28,7 @@ func TestRegister(t *testing.T) {
 	serverPath := "/_server_bus_"
 	serverBus := NewServer(":2010", serverPath, New())
 
-	args := &SubscribeArg{serverBus.address, serverPath, PublishService, Subscribe, "topic"}
+	args := &SubscribeArg{serverBus.address, serverPath, PublishService, SubscribeTypePermanent, "topic"}
 	reply := new(bool)
 
 	serverBus.service.Register(args, reply)
@@ -78,7 +78,7 @@ func TestServerPublish(t *testing.T) {
 
 	clientBus.Subscribe("topic", fn, ":2010", "/_server_bus_b")
 
-	serverBus.EventBus().Publish("topic", 10)
+	serverBus.eventBus.Publish("topic", 10)
 
 	clientBus.Stop()
 	serverBus.Stop()

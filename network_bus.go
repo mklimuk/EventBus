@@ -15,7 +15,7 @@ type NetworkBus struct {
 	*Client
 	*Server
 	service   *NetworkBusService
-	sharedBus Bus
+	sharedBus *EventBus
 	address   string
 	path      string
 }
@@ -30,11 +30,6 @@ func NewNetworkBus(address, path string) *NetworkBus {
 	bus.address = address
 	bus.path = path
 	return bus
-}
-
-// EventBus - returns wrapped event bus
-func (networkBus *NetworkBus) EventBus() Bus {
-	return networkBus.sharedBus
 }
 
 // NetworkBusService - object capable of serving the network bus

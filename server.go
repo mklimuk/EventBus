@@ -13,10 +13,10 @@ import (
 type SubscribeType int
 
 const (
-	// Subscribe - subscribe to all events
-	Subscribe SubscribeType = iota
-	// SubscribeOnce - subscribe to only one event
-	SubscribeOnce
+	// SubscribeTypePermanent - subscribe to all events
+	SubscribeTypePermanent SubscribeType = iota
+	// SubscribeTypeOnce - subscribe to only one event
+	SubscribeTypeOnce
 )
 
 const (
@@ -35,7 +35,7 @@ type SubscribeArg struct {
 
 // Server - object capable of being subscribed to by remote handlers
 type Server struct {
-	eventBus    Bus
+	eventBus    *EventBus
 	address     string
 	path        string
 	subscribers map[string][]*SubscribeArg
@@ -43,7 +43,7 @@ type Server struct {
 }
 
 // NewServer - create a new Server at the address and path
-func NewServer(address, path string, eventBus Bus) *Server {
+func NewServer(address, path string, eventBus *EventBus) *Server {
 	server := new(Server)
 	server.eventBus = eventBus
 	server.address = address
@@ -53,26 +53,22 @@ func NewServer(address, path string, eventBus Bus) *Server {
 	return server
 }
 
-// EventBus - returns wrapped event bus
-func (server *Server) EventBus() Bus {
-	return server.eventBus
-}
-
-func (server *Server) rpcCallback(subscribeArg *SubscribeArg) func(args ...interface{}) {
-	return func(args ...interface{}) {
-		client, connErr := rpc.DialHTTPPath("tcp", subscribeArg.ClientAddr, subscribeArg.ClientPath)
+func (server *Server) rpcCallback(subscribeArg *SubscribeArg) func(args ...interface{}) error {
+	return func(args ...interface{}) error {
+		client, err := rpc.DialHTTPPath("tcp", subscribeArg.ClientAddr, subscribeArg.ClientPath)
 		defer client.Close()
-		if connErr != nil {
-			fmt.Errorf("dialing: %v", connErr)
+		if err != nil {
+			return fmt.Errorf("dialing: %v", err)
 		}
 		clientArg := new(ClientArg)
 		clientArg.Topic = subscribeArg.Topic
 		clientArg.Args = args
 		var reply bool
-		err := client.Call(subscribeArg.ServiceMethod, clientArg, &reply)
+		err = client.Call(subscribeArg.ServiceMethod, clientArg, &reply)
 		if err != nil {
-			fmt.Errorf("dialing: %v", err)
+			return fmt.Errorf("dialing: %v", err)
 		}
+		return nil
 	}
 }
 
@@ -90,24 +86,22 @@ func (server *Server) HasClientSubscribed(arg *SubscribeArg) bool {
 
 // Start - starts a service for remote clients to subscribe to events
 func (server *Server) Start() error {
-	var err error
 	service := server.service
 	if !service.started {
 		rpcServer := rpc.NewServer()
 		rpcServer.Register(service)
 		rpcServer.HandleHTTP(server.path, "/debug"+server.path)
-		l, e := net.Listen("tcp", server.address)
-		if e != nil {
-			err = e
-			fmt.Errorf("listen error: %v", e)
+		l, err := net.Listen("tcp", server.address)
+		if err != nil {
+			return fmt.Errorf("listen error: %v", err)
 		}
 		service.started = true
 		service.wg.Add(1)
 		go http.Serve(l, nil)
 	} else {
-		err = errors.New("Server bus already started")
+		return errors.New("Server bus already started")
 	}
-	return err
+	return nil
 }
 
 // Stop - signal for the service to stop serving
@@ -134,9 +128,9 @@ func (service *ServerService) Register(arg *SubscribeArg, success *bool) error {
 	if !service.server.HasClientSubscribed(arg) {
 		rpcCallback := service.server.rpcCallback(arg)
 		switch arg.SubscribeType {
-		case Subscribe:
+		case SubscribeTypePermanent:
 			service.server.eventBus.Subscribe(arg.Topic, rpcCallback)
-		case SubscribeOnce:
+		case SubscribeTypeOnce:
 			service.server.eventBus.SubscribeOnce(arg.Topic, rpcCallback)
 		}
 		var topicSubscribers []*SubscribeArg
