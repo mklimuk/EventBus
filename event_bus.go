@@ -164,7 +164,7 @@ func (bus *EventBus) Unsubscribe(topic string, handler interface{}) error {
 
 // Publish runs Publish on package-level bus singleton
 func Publish(topic string, args ...interface{}) {
-	b.Publish(topic, args)
+	b.Publish(topic, args...)
 }
 
 // Publish executes callback defined for a topic. Any additional argument will be transferred to the callback.
