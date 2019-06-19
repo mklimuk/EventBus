@@ -1,4 +1,4 @@
-package EventBus
+package eventbus
 
 import (
 	"errors"
@@ -35,7 +35,7 @@ type SubscribeArg struct {
 
 // Server - object capable of being subscribed to by remote handlers
 type Server struct {
-	eventBus    *EventBus
+	eventBus    *Bus
 	address     string
 	path        string
 	subscribers map[string][]*SubscribeArg
@@ -43,7 +43,7 @@ type Server struct {
 }
 
 // NewServer - create a new Server at the address and path
-func NewServer(address, path string, eventBus *EventBus) *Server {
+func NewServer(address, path string, eventBus *Bus) *Server {
 	server := new(Server)
 	server.eventBus = eventBus
 	server.address = address

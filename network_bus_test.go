@@ -1,4 +1,4 @@
-package EventBus
+package eventbus
 
 import (
 	"testing"
@@ -8,7 +8,7 @@ func TestNewServer(t *testing.T) {
 	serverBus := NewServer(":2010", "/_server_bus_", New())
 	serverBus.Start()
 	if serverBus == nil || !serverBus.service.started {
-		t.Log("New server EventBus not created!")
+		t.Log("New server Bus not created!")
 		t.Fail()
 	}
 	serverBus.Stop()
@@ -18,7 +18,7 @@ func TestNewClient(t *testing.T) {
 	clientBus := NewClient(":2015", "/_client_bus_", New())
 	clientBus.Start()
 	if clientBus == nil || !clientBus.service.started {
-		t.Log("New client EventBus not created!")
+		t.Log("New client Bus not created!")
 		t.Fail()
 	}
 	clientBus.Stop()
@@ -97,7 +97,7 @@ func TestNetworkBus(t *testing.T) {
 		}
 	}
 	networkBusA.Subscribe("topic-A", fnA, ":2030", "/_net_bus_B")
-	networkBusB.EventBus().Publish("topic-A", 10)
+	networkBusB.sharedBus.Publish("topic-A", 10)
 
 	fnB := func(a int) {
 		if a != 20 {
@@ -105,7 +105,7 @@ func TestNetworkBus(t *testing.T) {
 		}
 	}
 	networkBusB.Subscribe("topic-B", fnB, ":2035", "/_net_bus_A")
-	networkBusA.EventBus().Publish("topic-B", 20)
+	networkBusA.sharedBus.Publish("topic-B", 20)
 
 	networkBusA.Stop()
 	networkBusB.Stop()

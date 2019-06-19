@@ -1,4 +1,4 @@
-package EventBus
+package eventbus
 
 import (
 	"errors"
@@ -10,12 +10,12 @@ import (
 )
 
 // NetworkBus - object capable of subscribing to remote event buses in addition to remote event
-// busses subscribing to it's local event bus. Compoed of a server and cliet
+// buses subscribing to it's local event bus. Composed of a server and client
 type NetworkBus struct {
 	*Client
 	*Server
 	service   *NetworkBusService
-	sharedBus *EventBus
+	sharedBus *Bus
 	address   string
 	path      string
 }

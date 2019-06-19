@@ -1,4 +1,4 @@
-package EventBus
+package eventbus
 
 import (
 	"errors"
@@ -22,25 +22,20 @@ type ClientArg struct {
 
 // Client - object capable of subscribing to a remote event bus
 type Client struct {
-	eventBus Bus
+	eventBus *Bus
 	address  string
 	path     string
 	service  *ClientService
 }
 
 // NewClient - create a client object with the address and server path
-func NewClient(address, path string, eventBus Bus) *Client {
+func NewClient(address, path string, eventBus *Bus) *Client {
 	client := new(Client)
 	client.eventBus = eventBus
 	client.address = address
 	client.path = path
 	client.service = &ClientService{client, &sync.WaitGroup{}, false}
 	return client
-}
-
-// EventBus - returns the underlying event bus
-func (client *Client) EventBus() Bus {
-	return client.eventBus
 }
 
 func (client *Client) doSubscribe(topic string, fn interface{}, serverAddr, serverPath string, subscribeType SubscribeType) error {

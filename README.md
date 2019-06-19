@@ -3,7 +3,7 @@ EventBus
 
 [![GoDoc](https://godoc.org/github.com/asaskevich/EventBus?status.svg)](https://godoc.org/github.com/asaskevich/EventBus) [![Coverage Status](https://img.shields.io/coveralls/asaskevich/EventBus.svg)](https://coveralls.io/r/asaskevich/EventBus?branch=master) [![Build Status](https://travis-ci.org/asaskevich/EventBus.svg)](https://travis-ci.org/asaskevich/EventBus)
 
-Package EventBus is the little and lightweight eventbus with async compatibility for GoLang.  
+package eventbus is the little and lightweight eventbus with async compatibility for GoLang.  
 
 #### Installation
 Make sure that Go is installed on your computer.
