@@ -6,26 +6,6 @@ import (
 	"sync"
 )
 
-//Subscriber defines subscription-related bus behavior
-type Subscriber interface {
-	Subscribe(topic string, fn interface{}) error
-	SubscribeAsync(topic string, fn interface{}, transactional bool) error
-	SubscribeOnce(topic string, fn interface{}) error
-	SubscribeOnceAsync(topic string, fn interface{}) error
-	Unsubscribe(topic string, handler interface{}) error
-}
-
-//Publisher defines publishing-related bus behavior
-type Publisher interface {
-	Publish(topic string, args ...interface{})
-}
-
-//Controller defines bus control behavior (checking handler's presence, synchronization)
-type Controller interface {
-	HasCallback(topic string) bool
-	WaitAsync()
-}
-
 var b *Bus
 
 func init() {
